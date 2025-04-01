@@ -1,0 +1,186 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Danh sách tuyển sinh</title>
+
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: Arial, sans-serif;
+            }
+            body {
+                background-color: #f8f9fa;
+                text-align: center;
+                padding: 20px;
+            }
+            h1 {
+                color: #007bff;
+                margin-bottom: 20px;
+            }
+            input, button {
+                padding: 8px;
+                margin: 5px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+            }
+            button {
+                background-color: #28a745;
+                color: white;
+                cursor: pointer;
+            }
+            table {
+                width: 80%;
+                margin: 20px auto;
+                border-collapse: collapse;
+                background: white;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+            th, td {
+                padding: 10px;
+                border: 1px solid #ddd;
+                text-align: center;
+            }
+            th {
+                background-color: #007bff;
+                color: white;
+            }
+            .edit-btn { background-color: #ffc107; }
+            .delete-btn { background-color: #dc3545; }
+        </style>
+    </head>
+    <body>
+    <input type="text" id="searchInput" placeholder="Họ và tên...">
+    <button onclick="searchStudent()">Tìm kiếm</button>
+
+    <h1>Danh sách học viên</h1>
+    <input id="name" type="text" placeholder="Họ và tên">
+    <input id="id" type="number" placeholder="Mã sinh viên">
+    <input id="date" type="date">
+    <input id="image" type="file" accept="image/*">
+    <input type="hidden" id="editIndex">
+    <button onclick="addOrUpdateStudent()">Thêm</button>
+
+    <table>
+        <thead>
+        <tr>
+            <th>STT</th>
+            <th>Tên sinh viên</th>
+            <th>Mã sinh viên</th>
+            <th>Ngày sinh</th>
+            <th>Ảnh</th>
+            <th>Chỉnh sửa</th>
+            <th>Xóa</th>
+        </tr>
+        </thead>
+        <tbody id="students"></tbody>
+    </table>
+
+    <script>
+
+        class Student {
+            constructor(stt, name, id, date, image) {
+                this.stt = stt;
+                this.name = name;
+                this.id = id;
+                this.date = date;
+                this.image = image;
+            }
+        }
+
+        let students = [
+            new Student(1, "Trịnh Thu Phương", "20020994", "2002-12-07", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQxW8XwGxnN8PuAM3DVRtXdrnjAzt4vBEiceQ&s"),
+            new Student(2, "Phạm Hồng Ngọc", "20010884", "2001-05-08", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTkhSY0ashlgEOOv6UQf7QVJLNeJWuB_cb9cw&s"),
+            new Student(3, "Nghiêm Thu Hường", "20020808", "2002-09-08", "https://danhgiaxe.edu.vn/upload/2024/12/bo-suu-tap-hinh-anh-gai-k8-dep-quyen-ru-khien-ban-say-dam-4.webp")
+        ];
+
+        function displayStudents() {
+            let content = "";
+            students.forEach((student, index) => {
+                content += `<tr>
+                    <td>${student.stt}</td>
+                    <td>${student.name}</td>
+                    <td>${student.id}</td>
+                    <td>${student.date}</td>
+                    <td><img src="${student.image}" width="80" height="100"></td>
+                    <td><button class='edit-btn' onclick='editStudent(${index})'>Sửa</button></td>
+                    <td><button class='delete-btn' onclick='deleteStudent(${index})'>Xóa</button></td>
+                </tr>`;
+            });
+            document.getElementById("students").innerHTML = content;
+        }
+
+        function addOrUpdateStudent() {
+            let name = document.getElementById("name").value;
+            let id = document.getElementById("id").value;
+            let date = document.getElementById("date").value;
+            let imageFile = document.getElementById("image").files[0];
+            let editIndex = document.getElementById("editIndex").value;
+
+            if (!name || !id || !date) {
+                alert("Vui lòng nhập đầy đủ thông tin!");
+                return;
+            }
+            let image = imageFile ? URL.createObjectURL(imageFile) : (editIndex !== "" ? students[editIndex].image : "");
+            if (editIndex !== "") {
+                students[editIndex] = new Student(parseInt(editIndex) + 1, name, id, date, image);
+            } else {
+                students.push(new Student(students.length + 1, name, id, date, image));
+            }
+            localStorage.setItem("students", JSON.stringify(students));
+            document.getElementById("editIndex").value = "";
+            document.getElementById("name").value = "";
+            document.getElementById("id").value = "";
+            document.getElementById("date").value = "";
+            document.getElementById("image").value = "";
+
+            displayStudents();
+        }
+
+        function deleteStudent(index) {
+            students.splice(index, 1);
+            students.forEach((student, i) => student.stt = i + 1);
+            localStorage.setItem("students", JSON.stringify(students));
+            displayStudents();
+        }
+
+        function editStudent(index) {
+            let student = students[index];
+            document.getElementById("name").value = student.name;
+            document.getElementById("id").value = student.id;
+            document.getElementById("date").value = student.date;
+            document.getElementById("editIndex").value = index;
+            localStorage.setItem("students", JSON.stringify(students));
+        }
+
+        function searchStudent() {
+            let keyword = document.getElementById("searchInput").value.toLowerCase();
+            let content = "";
+            let count = 0;
+            for (let i = 0; i < students.length; i++) {
+                if (students[i].name.toLowerCase().includes(keyword)) {
+                    count++;
+                    content += `<tr>
+                <td>${count}</td>
+                <td>${students[i].name}</td>
+                <td>${students[i].id}</td>
+                <td>${students[i].date}</td>
+                <td><img src="${students[i].image}" width="80" height="100"></td>
+                <td><button class='edit-btn' onclick='editStudent(${i})'>Sửa</button></td>
+                <td><button class='delete-btn' onclick='deleteStudent(${i})'>Xóa</button></td>
+            </tr>`;
+                }
+            }
+            document.getElementById("students").innerHTML = content;
+        }
+
+        let storedStudents = localStorage.getItem("students");
+        students = storedStudents ? JSON.parse(storedStudents) : students;
+        displayStudents();
+
+    </script>
+    </body>
+    </html>

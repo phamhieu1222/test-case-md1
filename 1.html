@@ -1,60 +1,245 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Danh sách tuyển sinh</title>
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-        body {
-            background-color: #f8f9fa;
-            text-align: center;
-            padding: 20px;
-        }
-        .login-container {
-            width: 300px;
-            margin: 100px auto;
-            padding: 20px;
-            background: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-        input, button {
-            width: 100%;
-            padding: 8px;
-            margin: 5px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            background-color: #28a745;
-            color: white;
-            cursor: pointer;
-        }
-    </style>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      background-color: #f8f9fa;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #007bff;
+      margin-bottom: 20px;
+    }
+    input, button {
+      padding: 8px;
+      margin: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background-color: #28a745;
+      color: white;
+      cursor: pointer;
+    }
+    table {
+      width: 80%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    .edit-btn { background-color: #ffc107; }
+    .delete-btn { background-color: #dc3545; }
+    fieldset {
+      margin-top: 20px;
+      padding: 10px;
+      border: 2px solid #007bff;
+      background-color: #f1f1f1;
+    }
+    .avg-score {
+      font-weight: bold;
+      color: green;
+    }
+  </style>
 </head>
 <body>
-<div class="login-container">
-    <h2>Đăng nhập</h2>
-    <input type="password" id="password" placeholder="Nhập mật khẩu">
-    <button onclick="checkLogin()">Đăng nhập</button>
-</div>
+<input type="text" id="searchInput" placeholder="Tìm kiếm theo họ và tên..." oninput="searchStudent()">
+<button onclick="searchStudent()">Tìm kiếm</button>
+
+<h1>Danh sách học viên</h1>
+<input id="name" type="text" placeholder="Họ và tên">
+<input id="id" type="number" placeholder="Mã sinh viên">
+<input id="date" type="date">
+<input id="image" type="file" accept="image/*">
+<input type="hidden" id="editIndex">
+<button onclick="addOrUpdateStudent()">Thêm/Sửa</button>
+
+<fieldset id="gradesFieldset" style="display:none;">
+  <legend>Bảng điểm</legend>
+  <input id="mathGrade" type="number" placeholder="Điểm Toán" min="0" max="10">
+  <input id="phyGrade" type="number" placeholder="Điểm Lý" min="0" max="10">
+  <input id="chemGrade" type="number" placeholder="Điểm Hóa" min="0" max="10">
+  <button onclick="calculateAverage()">Tính điểm trung bình</button>
+</fieldset>
+
+<table>
+  <thead>
+  <tr>
+    <th>STT</th>
+    <th>Tên sinh viên</th>
+    <th>Mã sinh viên</th>
+    <th>Ngày sinh</th>
+    <th>Ảnh</th>
+    <th>Chỉnh sửa</th>
+    <th>Xóa</th>
+    <th>Điểm trung bình</th>
+  </tr>
+  </thead>
+  <tbody id="students"></tbody>
+</table>
 
 <script>
-    function checkLogin() {
-        const password = document.getElementById("password").value;
-        if (password === "hieuthuhai") {
-            window.location.href = "2.html";
-        } else {
-            alert("Mật khẩu sai! Vui lòng thử lại.");
-        }
+  class Student {
+    constructor(stt, name, id, date, image, mathGrade, phyGrade, chemGrade, average) {
+      this.stt = stt;
+      this.name = name;
+      this.id = id;
+      this.date = date;
+      this.image = image;
+      this.mathGrade = mathGrade || 0;
+      this.phyGrade = phyGrade || 0;
+      this.chemGrade = chemGrade || 0;
+      this.average = average || 0;
     }
+  }
+
+  let students = [
+    new Student(1, "Trịnh Thu Phương", "20020994", "2002-12-07", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQxW8XwGxnN8PuAM3DVRtXdrnjAzt4vBEiceQ&s"),
+    new Student(2, "Phạm Hồng Ngọc", "20010884", "2001-05-08", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTkhSY0ashlgEOOv6UQf7QVJLNeJWuB_cb9cw&s"),
+    new Student(3, "Nghiêm Thu Hường", "20020808", "2002-09-08", "https://danhgiaxe.edu.vn/upload/2024/12/bo-suu-tap-hinh-anh-gai-k8-dep-quyen-ru-khien-ban-say-dam-4.webp")
+  ];
+
+  function searchStudent() {
+    let searchQuery = document.getElementById("searchInput").value.toLowerCase();
+    let filteredStudents = students.filter(student => student.name.toLowerCase().includes(searchQuery));
+    displayStudents(filteredStudents);
+  }
+
+  function displayStudents(filteredList) {
+    let content = "";
+    let studentList = filteredList || students;
+    studentList.forEach((student, index) => {
+      content += `<tr>
+                      <td>${student.stt}</td>
+                      <td><a href="javascript:void(0);" onclick="showGrades(${index})">${student.name}</a></td>
+                      <td>${student.id}</td>
+                      <td>${student.date}</td>
+                      <td><img src="${student.image}" width="80" height="100"></td>
+                      <td><button class='edit-btn' onclick='editStudent(${index})'>Sửa</button></td>
+                      <td><button class='delete-btn' onclick='deleteStudent(${index})'>Xóa</button></td>
+                      <td class="avg-score" id="avgScore-${student.stt}">${student.average ? student.average : "Chưa tính"}</td>
+                    </tr>`;
+    });
+    document.getElementById("students").innerHTML = content;
+  }
+
+  function addOrUpdateStudent() {
+    let name = document.getElementById("name").value;
+    let id = document.getElementById("id").value;
+    let date = document.getElementById("date").value;
+    let imageFile = document.getElementById("image").files[0];
+    let editIndex = document.getElementById("editIndex").value;
+
+    if (!name || !id || !date) {
+      alert("Vui lòng nhập đầy đủ thông tin!");
+      return;
+    }
+
+    let image = imageFile ? URL.createObjectURL(imageFile) : (editIndex !== "" ? students[editIndex].image : "");
+    let mathGrade = 0, phyGrade = 0, chemGrade = 0, average = 0;
+
+    if (editIndex !== "") {
+      students[editIndex] = new Student(parseInt(editIndex) + 1, name, id, date, image, mathGrade, phyGrade, chemGrade, average);
+    } else {
+      students.push(new Student(students.length + 1, name, id, date, image, mathGrade, phyGrade, chemGrade, average));
+    }
+
+    localStorage.setItem("students", JSON.stringify(students));
+    clearInputFields();
+    displayStudents();
+  }
+
+  function deleteStudent(index) {
+    students.splice(index, 1);
+    students.forEach((student, i) => student.stt = i + 1);
+    localStorage.setItem("students", JSON.stringify(students));
+    displayStudents();
+  }
+
+  function editStudent(index) {
+    let student = students[index];
+    document.getElementById("name").value = student.name;
+    document.getElementById("id").value = student.id;
+    document.getElementById("date").value = student.date;
+    document.getElementById("editIndex").value = index;
+    document.getElementById("mathGrade").value = student.mathGrade;
+    document.getElementById("phyGrade").value = student.phyGrade;
+    document.getElementById("chemGrade").value = student.chemGrade;
+    document.getElementById("gradesFieldset").style.display = "block";
+  }
+
+  function showGrades(index) {
+    let student = students[index];
+    document.getElementById("gradesFieldset").style.display = "block";
+    document.getElementById("mathGrade").value = student.mathGrade;
+    document.getElementById("phyGrade").value = student.phyGrade;
+    document.getElementById("chemGrade").value = student.chemGrade;
+  }
+
+  function calculateAverage() {
+    let mathGrade = parseFloat(document.getElementById("mathGrade").value);
+    let phyGrade = parseFloat(document.getElementById("phyGrade").value);
+    let chemGrade = parseFloat(document.getElementById("chemGrade").value);
+
+        if (isNaN(mathGrade) || isNaN(phyGrade) || isNaN(chemGrade)) {
+      alert("Vui lòng nhập đầy đủ điểm!");
+      return;
+    }
+
+    let average = (mathGrade + phyGrade + chemGrade) / 3;
+
+
+    let editIndex = document.getElementById("editIndex").value;
+    students[editIndex].mathGrade = mathGrade;
+    students[editIndex].phyGrade = phyGrade;
+    students[editIndex].chemGrade = chemGrade;
+    students[editIndex].average = average.toFixed(2);
+
+    let avgScoreCell = document.getElementById(`avgScore-${students[editIndex].stt}`);
+    if (avgScoreCell) {
+      avgScoreCell.innerText = average.toFixed(2);
+    }
+
+
+    localStorage.setItem("students", JSON.stringify(students));
+
+       document.getElementById("gradesFieldset").style.display = "none";
+  }
+
+
+  function clearInputFields() {
+    document.getElementById("name").value = "";
+    document.getElementById("id").value = "";
+    document.getElementById("date").value = "";
+    document.getElementById("image").value = "";
+    document.getElementById("editIndex").value = "";
+    document.getElementById("gradesFieldset").style.display = "none";
+  }
+
+  let storedStudents = localStorage.getItem("students");
+  students = storedStudents ? JSON.parse(storedStudents) : students;
+  displayStudents();
 </script>
+
 </body>
 </html>

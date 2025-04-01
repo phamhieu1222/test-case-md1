@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập & Đăng ký</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { background-color: #f8f9fa; text-align: center; padding: 20px; }
+    .container { width: 300px; margin: 100px auto; padding: 20px; background: white; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); border-radius: 10px; }
+    input, button { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; }
+    button { background-color: #28a745; color: white; cursor: pointer; }
+  </style>
+</head>
+<body>
+<div class="container" id="loginBox">
+  <h2>Đăng nhập</h2>
+  <input type="text" id="loginUser" placeholder="Nhập tài khoản">
+  <input type="password" id="loginPass" placeholder="Nhập mật khẩu">
+  <button onclick="login()">Đăng nhập</button>
+  <p>Chưa có tài khoản? <a href="#" onclick="toggleForms()">Đăng ký</a></p>
+</div>
+
+<div class="container" id="registerBox" style="display: none;">
+  <h2>Đăng ký</h2>
+  <input type="text" id="registerUser" placeholder="Nhập tài khoản">
+  <input type="password" id="registerPass" placeholder="Nhập mật khẩu">
+  <button onclick="register()">Đăng ký</button>
+  <p>Đã có tài khoản? <a href="#" onclick="toggleForms()">Đăng nhập</a></p>
+</div>
+
+<script>
+  function toggleForms() {
+    document.getElementById("loginBox").style.display = document.getElementById("loginBox").style.display === "none" ? "block" : "none";
+    document.getElementById("registerBox").style.display = document.getElementById("registerBox").style.display === "none" ? "block" : "none";
+  }
+
+  function register() {
+    const user = document.getElementById("registerUser").value;
+    const pass = document.getElementById("registerPass").value;
+    if (user && pass) {
+      localStorage.setItem(user, pass);
+      alert("Đăng ký thành công! Hãy đăng nhập.");
+      toggleForms();
+    } else {
+      alert("Vui lòng nhập đủ thông tin.");
+    }
+  }
+
+  function login() {
+    const user = document.getElementById("loginUser").value;
+    const pass = document.getElementById("loginPass").value;
+    if (localStorage.getItem(user) === pass) {
+      alert("Đăng nhập thành công!");
+      window.location.href = "2.html";
+    } else {
+      alert("Sai tài khoản hoặc mật khẩu!");
+    }
+  }
+</script>
+</body>
+</html>
